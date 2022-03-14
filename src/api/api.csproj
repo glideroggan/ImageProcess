@@ -3,11 +3,23 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
+<!--    <RuntimeIdentifier>win-x64</RuntimeIdentifier>-->
+<!--    <Platforms>win-x64</Platforms>-->
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <Configurations>Release;Debug</Configurations>
+    <Platforms>AnyCPU;win-x64;x64</Platforms>
+    
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug Copy|win-x64' ">
+    <DebugSymbols Condition=" '$(DebugSymbols)' == '' ">true</DebugSymbols>
+    <Optimize Condition=" '$(Optimize)' == '' ">false</Optimize>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="dlibdotnet" Version="19.21.0.20220130" />
+    <PackageReference Include="facerecognitiondotnet" Version="1.3.0.6" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
 

@@ -32,7 +32,7 @@ function start() {
         }, 'image/jpeg', 1);
 
         // data url of the image
-        console.log(image_data_url);
+        // console.log(image_data_url);
 
         
     });
