@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS faces (
         while (await reader.ReadAsync())
         {
             var name = reader.GetString(0);
-            var faceId = reader.GetString(0);
+            var faceId = reader.GetString(1);
 
             if (res.ContainsKey(name))
             {
