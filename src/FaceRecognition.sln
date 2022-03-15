@@ -7,6 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "testapp", "testapp\testapp.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "api", "api\api.csproj", "{FF13F96A-BA9A-4DF2-B8CB-56804E4D4E89}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "azure-face", "azure-face\azure-face.csproj", "{619D6A17-C50C-4E02-B0B0-CFDD0A73B64C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "contracts", "contracts\contracts.csproj", "{323F2B79-BC6A-4618-9795-D14D2EDDC23E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "storage-sqllite", "storage-sqllite\storage-sqllite.csproj", "{79DB7EF2-C910-472B-B05F-10A6CCBBD636}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +32,24 @@ Global
 		{FF13F96A-BA9A-4DF2-B8CB-56804E4D4E89}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FF13F96A-BA9A-4DF2-B8CB-56804E4D4E89}.Debug Copy|win-x64.ActiveCfg = Debug|x64
 		{FF13F96A-BA9A-4DF2-B8CB-56804E4D4E89}.Debug Copy|win-x64.Build.0 = Debug|x64
+		{619D6A17-C50C-4E02-B0B0-CFDD0A73B64C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{619D6A17-C50C-4E02-B0B0-CFDD0A73B64C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{619D6A17-C50C-4E02-B0B0-CFDD0A73B64C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{619D6A17-C50C-4E02-B0B0-CFDD0A73B64C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{619D6A17-C50C-4E02-B0B0-CFDD0A73B64C}.Debug Copy|win-x64.ActiveCfg = Debug|Any CPU
+		{619D6A17-C50C-4E02-B0B0-CFDD0A73B64C}.Debug Copy|win-x64.Build.0 = Debug|Any CPU
+		{323F2B79-BC6A-4618-9795-D14D2EDDC23E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{323F2B79-BC6A-4618-9795-D14D2EDDC23E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{323F2B79-BC6A-4618-9795-D14D2EDDC23E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{323F2B79-BC6A-4618-9795-D14D2EDDC23E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{323F2B79-BC6A-4618-9795-D14D2EDDC23E}.Debug Copy|win-x64.ActiveCfg = Debug|Any CPU
+		{323F2B79-BC6A-4618-9795-D14D2EDDC23E}.Debug Copy|win-x64.Build.0 = Debug|Any CPU
+		{79DB7EF2-C910-472B-B05F-10A6CCBBD636}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79DB7EF2-C910-472B-B05F-10A6CCBBD636}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79DB7EF2-C910-472B-B05F-10A6CCBBD636}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79DB7EF2-C910-472B-B05F-10A6CCBBD636}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79DB7EF2-C910-472B-B05F-10A6CCBBD636}.Debug Copy|win-x64.ActiveCfg = Debug|Any CPU
+		{79DB7EF2-C910-472B-B05F-10A6CCBBD636}.Debug Copy|win-x64.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
