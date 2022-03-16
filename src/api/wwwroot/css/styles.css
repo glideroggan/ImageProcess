@@ -1,0 +1,9 @@
+﻿.container {
+    border: 5px solid black;
+    display: block;
+    width: 400px;
+}
+
+.container > button {
+    display: inline-block;
+}

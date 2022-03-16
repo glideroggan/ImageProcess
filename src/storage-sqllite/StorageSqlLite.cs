@@ -1,4 +1,5 @@
-﻿using contracts;
+﻿using System.Globalization;
+using contracts;
 using Microsoft.Data.Sqlite;
 
 namespace storage_sqllite;
@@ -22,14 +23,17 @@ CREATE TABLE IF NOT EXISTS faces (
     id text PRIMARY KEY,
     faceid text,
     name text,
+    expire text NOT NULL,
     image blob
 ) WITHOUT ROWID";
         command.ExecuteNonQuery();
         connection.Close();
     }
 
-    public async Task AddFacesAsync(string name, params Face[] faces)
+    
+    public async Task AddFacesAsync(string name, DateOnly expireDate,byte[]? blob=null, params Face[] faces)
     {
+        // TODO: make support to add several faceId at the same time
         var face = faces.First();
         using var connection = new SqliteConnection("Data Source=faces.db");
         await connection.OpenAsync();
@@ -37,7 +41,17 @@ CREATE TABLE IF NOT EXISTS faces (
         command.Parameters.AddWithValue("$id", Guid.NewGuid().ToString("N"));
         command.Parameters.AddWithValue("$faceid", face.Id.ToString("N"));
         command.Parameters.AddWithValue("$name", name);
-        command.CommandText = "insert into faces (id, faceid, name) values($id, $faceid, $name)";
+        command.Parameters.AddWithValue("$expire", expireDate.ToString("yyyy-MM-dd"));
+        if (blob != null)
+        {
+            command.Parameters.AddWithValue("$blob", blob ?? null);
+            command.CommandText = "insert into faces (id, faceid, name, image, expire) values($id, $faceid, $name, $blob, $expire)";
+        }
+        else
+        {
+            command.CommandText = "insert into faces (id, faceid, name, image, expire) values($id, $faceid, $name, null, $expire)";
+        }
+        
         await command.ExecuteNonQueryAsync();
     }
 
@@ -47,7 +61,7 @@ CREATE TABLE IF NOT EXISTS faces (
         using var connection = new SqliteConnection("Data Source=faces.db");
         await connection.OpenAsync();
         var command = connection.CreateCommand();
-        command.CommandText = @"SELECT name, faceid FROM faces";
+        command.CommandText = @"SELECT name, faceid FROM faces where expire > Date()";
         using var reader = await command.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {

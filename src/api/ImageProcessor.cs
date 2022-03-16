@@ -15,9 +15,15 @@ namespace api
         public string Name { get; set; }
     }
 
-    public class ApiResult
+    public class ApiResults<T>
     {
-        public int ErrorCode { get; set; }
+        public T? Data { get; set; }
+        public ApiError? Error { get; set; }
+    }
+
+    public class ApiError
+    {
+        public int StatusCode { get; set; }
         public string Message { get; set; }
     }
 
@@ -41,7 +47,7 @@ namespace api
             var profile = await ReadDataFromRequestAndWriteToFileAsync(context, filename);
             profile.Name = name;
 
-            // TODO: do a face detect to make sure that there is a face in the image
+            var defaultTtlFace = TimeSpan.FromHours(24);
             var faces = await _faceDetector.FaceDetectAsync(profile.PathToImage);
             if (!faces.Any())
             {
@@ -51,11 +57,12 @@ namespace api
             }
 
             // store the faceIds
-            // TODO: we should add the TTL value to db
-            await _storageProvider.AddFacesAsync(name, faces.First());
+            // TODO: add the image that belongs with the id
+            await _storageProvider.AddFacesAsync(name, DateOnly.FromDateTime(DateTime.UtcNow.Add(defaultTtlFace)), null,
+                faces.First());
         }
 
-        internal async Task<FaceMatch?> Process(HttpContext context, bool? async = default)
+        internal async Task<ApiResults<FaceMatch>> Process(HttpContext context, bool? async = default)
         {
             // TODO: for async calls, get it from requests and write to file and add to db
             // add to queue?
@@ -73,22 +80,32 @@ namespace api
             // using var bitmap = unknownImage.ToBitmap();
 
             // TODO: send to azure?
-            var faces = await _faceDetector.FaceDetectAsync(profile.PathToImage);
+            var faces = (await _faceDetector.FaceDetectAsync(profile.PathToImage)).ToList();
             if (!faces.Any())
             {
                 // TODO: add reason
-                context.Response.StatusCode = 400;
-                return null;
+                return new ApiResults<FaceMatch>
+                {
+                    Error = new ApiError { StatusCode = 400, Message = "No face found!" }
+                };
             }
 
             var faceIds = await _storageProvider.GetKnownFacesAsync();
 
             var verifyResults = await _faceDetector.FaceVerifyAsync(faces.First().Id, faceIds);
 
-            return verifyResults
-                .Where(x => x.IsIdentical)
-                .Select(x => new FaceMatch { Name = x.Person })
-                .FirstOrDefault();
+            var res = new FaceMatch
+            {
+                Identified = verifyResults.Any(x => x.IsIdentical),
+                Name = verifyResults.Where(x => x.IsIdentical)
+                    .Select(x => x.Person)
+                    .FirstOrDefault()
+            };
+
+            return new ApiResults<FaceMatch>()
+            {
+                Data = res
+            };
         }
 
         private async Task<Profile> ReadDataFromRequestAndWriteToFileAsync(HttpContext context, string filename)

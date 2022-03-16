@@ -8,13 +8,14 @@ public interface IFaceDetector
 
 public interface IStorageProvider
 {
-    Task AddFacesAsync(string name, params Face[] faces);
+    Task AddFacesAsync(string name, DateOnly expireDate, byte[]? blob = null, params Face[] faces);
     Task<Dictionary<string, List<Guid>>> GetKnownFacesAsync();
 }
 
 public class FaceMatch
 {
-    public string Name { get; set; }
+    public bool Identified { get; set; }
+    public string? Name { get; set; }
 }
 
 public class FaceVerify

@@ -36,7 +36,7 @@ function start() {
         canvas_verify.getContext('2d').drawImage(video, 0, 0, canvas_verify.width, canvas_verify.height);
         canvas_verify.toBlob(blob => {
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/api/image', true);
+            xhr.open('POST', '/api/verify', true);
             xhr.setRequestHeader('content-type', 'image/jpg');
             xhr.onload = function () {
                 if (this.status === 200) {

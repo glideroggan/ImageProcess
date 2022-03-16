@@ -2,45 +2,33 @@
 
 public class HostedServiceFaceDetect : IHostedService
 {
-    private Task _task;
     private CancellationTokenSource _cts;
+    private FileSystemWatcher _watcher;
 
-    public HostedServiceFaceDetect()
-    {
-        
-    }
     public Task StartAsync(CancellationToken cancellationToken)
     {
         _cts = new CancellationTokenSource();
-        _task = Task.Factory.StartNew(() => Start(_cts.Token), _cts.Token);
-        return _task;
+        // _task = Task.Factory.StartNew(() => Start(_cts.Token), _cts.Token);
+        
+        _watcher = new FileSystemWatcher("./processFolder");
+        _watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime;
+        _watcher.Created += WatcherOnCreated;
+        _watcher.Changed += WatcherOnChanged;
+        _watcher.Filter = "*.*";
+        _watcher.EnableRaisingEvents = false;
+        
+        // TODO: start interval timer here to clear out expired faces from db
+        return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
+        _watcher.EnableRaisingEvents = false;
+        _watcher.Dispose();
         _cts.Cancel();
         return Task.CompletedTask;
     }
     
-    
-
-    private async Task Start(CancellationToken ct)
-    {
-        // TODO: below part can probably be moved into StartAsync and later disposed in StopAsync
-        using var watcher = new FileSystemWatcher("./processFolder");
-        watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime;
-        watcher.Created += WatcherOnCreated;
-        watcher.Changed += WatcherOnChanged;
-        watcher.Filter = "*.*";
-        watcher.EnableRaisingEvents = false;
-        
-        while (!ct.IsCancellationRequested)
-        {
-            // check for new files
-            await Task.Delay(1000, ct);
-        }
-    }
-
     private void WatcherOnChanged(object sender, FileSystemEventArgs e)
     {
         // TODO: continue here
