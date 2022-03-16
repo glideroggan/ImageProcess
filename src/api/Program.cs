@@ -7,7 +7,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddSingleton<ImageProcessor>();
-builder.Services.AddSingleton<IFaceDetector, AzureFaceServices>();
+builder.Services.AddSingleton<IFaceDetector>(provider =>
+{
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    var opt = new AzureFaceServicesOptions();
+    configuration.GetSection(AzureFaceServicesOptions.AzureFaceServices).Bind(opt);
+    return new AzureFaceServices(opt.ApiKey, opt.Endpoint);
+});
 builder.Services.AddSingleton<IStorageProvider, StorageSqlLite>();
 
 
@@ -39,8 +45,8 @@ app.UseStaticFiles();
 
 var imageProcess = app.Services.GetRequiredService<ImageProcessor>();
 // TODO: we want parameter to this if the call is async or not
-app.MapPost("/api/image", async (ctx) =>
-    await imageProcess.Process(ctx));
+app.MapPost("/api/image", async (HttpContext ctx, bool? async) =>
+    await imageProcess.Process(ctx, async));
 // TODO: we want to be able to send in an faceId here, so that we can tell that it belongs to the same face
 app.MapPost("/api/upload/{name}", async (string name, HttpContext ctx) => await imageProcess.AddNewFace(ctx, name));
 

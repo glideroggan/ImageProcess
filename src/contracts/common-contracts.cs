@@ -12,6 +12,11 @@ public interface IStorageProvider
     Task<Dictionary<string, List<Guid>>> GetKnownFacesAsync();
 }
 
+public class FaceMatch
+{
+    public string Name { get; set; }
+}
+
 public class FaceVerify
 {
     public string Person { get; set; }
