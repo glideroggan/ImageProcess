@@ -39,7 +39,7 @@ namespace api
             _storageProvider = storageProvider;
         }
 
-        internal async Task AddNewFace(HttpContext context, string name)
+        internal async Task<ApiResults<bool>> AddNewFace(HttpContext context, string name)
         {
             // PERF: use an array pool here instead
             // TODO: we should precount the counter based on the images in the folder already
@@ -47,28 +47,36 @@ namespace api
             var profile = await ReadDataFromRequestAndWriteToFileAsync(context, filename);
             profile.Name = name;
 
+            var results = new ApiResults<bool>();
             var defaultTtlFace = TimeSpan.FromHours(24);
             var faces = await _faceDetector.FaceDetectAsync(profile.PathToImage);
             if (!faces.Any())
             {
-                // TODO: add reason
-                context.Response.StatusCode = 400;
-                return;
+                return new ApiResults<bool>
+                {
+                    Error = new ApiError { StatusCode = 400, Message = "No face found!" }
+                };
             }
+
+            results.Data = true;
 
             // store the faceIds
             // TODO: add the image that belongs with the id
             await _storageProvider.AddFacesAsync(name, DateOnly.FromDateTime(DateTime.UtcNow.Add(defaultTtlFace)), null,
                 faces.First());
+
+            return results;
         }
 
-        internal async Task<ApiResults<FaceMatch>> Process(HttpContext context, bool? async = default)
+        internal async Task<ApiResults<FaceMatch>> VerifyFace(HttpContext context, bool? async = default)
         {
+            // TODO: this call could take time, so async could be better
             // TODO: for async calls, get it from requests and write to file and add to db
             // add to queue?
 
             // PERF: use an array pool here instead
             var filename = $"image{idCounter}.jpg";
+            // PERF: don't save to file, if not async, use the stream directly
             var profile = await ReadDataFromRequestAndWriteToFileAsync(context, filename);
 
             // get face locations
@@ -79,19 +87,24 @@ namespace api
             // https://docs.microsoft.com/en-us/dotnet/api/system.drawing.bitmap?view=dotnet-plat-ext-6.0
             // using var bitmap = unknownImage.ToBitmap();
 
-            // TODO: send to azure?
+            
             var faces = (await _faceDetector.FaceDetectAsync(profile.PathToImage)).ToList();
             if (!faces.Any())
             {
-                // TODO: add reason
                 return new ApiResults<FaceMatch>
                 {
                     Error = new ApiError { StatusCode = 400, Message = "No face found!" }
                 };
             }
+            if (faces.Count > 1)
+            {
+                return new ApiResults<FaceMatch>
+                {
+                    Error = new ApiError { StatusCode = 401, Message = "Too many faces!" }
+                };
+            }
 
             var faceIds = await _storageProvider.GetKnownFacesAsync();
-
             var verifyResults = await _faceDetector.FaceVerifyAsync(faces.First().Id, faceIds);
 
             var res = new FaceMatch
@@ -101,6 +114,7 @@ namespace api
                     .Select(x => x.Person)
                     .FirstOrDefault()
             };
+            // TODO: if no identity found, but a face was found, send back face coordinates at least?
 
             return new ApiResults<FaceMatch>()
             {
@@ -129,13 +143,13 @@ namespace api
 
                     if (readResult.IsCompleted) break;
 
-                    reader.AdvanceTo(buffer.Start, buffer.End);
+                    reader.AdvanceTo(buffer.End);
                 }
             }
             finally
             {
+                await writer.FlushAsync();
                 await reader.CompleteAsync();
-                // await fileStream.FlushAsync();
                 await writer.CompleteAsync();
             }
 

@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Text;
 using contracts;
 using Microsoft.Data.Sqlite;
 
@@ -27,11 +28,17 @@ CREATE TABLE IF NOT EXISTS faces (
     image blob
 ) WITHOUT ROWID";
         command.ExecuteNonQuery();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS face_encodings (
+    faceid text PRIMARY KEY,
+    encoding text NOT NULL
+) WITHOUT ROWID";
+        command.ExecuteNonQuery();
         connection.Close();
     }
 
-    
-    public async Task AddFacesAsync(string name, DateOnly expireDate,byte[]? blob=null, params Face[] faces)
+
+    public async Task AddFacesAsync(string name, DateOnly expireDate, byte[]? blob = null, params Face[] faces)
     {
         // TODO: make support to add several faceId at the same time
         var face = faces.First();
@@ -45,13 +52,15 @@ CREATE TABLE IF NOT EXISTS faces (
         if (blob != null)
         {
             command.Parameters.AddWithValue("$blob", blob ?? null);
-            command.CommandText = "insert into faces (id, faceid, name, image, expire) values($id, $faceid, $name, $blob, $expire)";
+            command.CommandText =
+                "insert into faces (id, faceid, name, image, expire) values($id, $faceid, $name, $blob, $expire)";
         }
         else
         {
-            command.CommandText = "insert into faces (id, faceid, name, image, expire) values($id, $faceid, $name, null, $expire)";
+            command.CommandText =
+                "insert into faces (id, faceid, name, image, expire) values($id, $faceid, $name, null, $expire)";
         }
-        
+
         await command.ExecuteNonQueryAsync();
     }
 
@@ -74,10 +83,44 @@ CREATE TABLE IF NOT EXISTS faces (
             }
             else
             {
-                res.Add(name, new List<Guid> {Guid.Parse(faceId)});
+                res.Add(name, new List<Guid> { Guid.Parse(faceId) });
             }
         }
 
         return res;
+    }
+
+    public async Task SaveFaceEncodingAsync(IEnumerable<MyFaceEncoding> newFaces)
+    {
+        /*
+         * add to table face_encodings
+         * encoding needs to be turn into text (sqlite), so parsing this needs some special attention
+         */
+        using var connection = new SqliteConnection("Data Source=faces.db");
+        await connection.OpenAsync();
+        foreach (var face in newFaces)
+        {
+            var command = connection.CreateCommand();
+            command.Parameters.AddWithValue("$faceid", face.FaceId.ToString("N"));
+            command.Parameters.AddWithValue("$encoding", TurnIntoText(face.FaceEncoding));
+
+            command.CommandText = "INSERT INTO face_encodings (faceid, encoding) values($faceid, $encoding)";
+            await command.ExecuteNonQueryAsync();
+        }
+        
+        
+    }
+
+    private string TurnIntoText(double[] arr)
+    {
+        // PERF: this creates alot of allocations, we could use an array pool of strings
+        // or not have this as a function, so that we can reuse the same string?
+        var builder = new StringBuilder();
+        foreach (var val in arr)
+        {
+            builder.Append(CultureInfo.InvariantCulture, $"{val},");
+        }
+
+        return builder.ToString();
     }
 }

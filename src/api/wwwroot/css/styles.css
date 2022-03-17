@@ -1,7 +1,7 @@
 ﻿.container {
     border: 5px solid black;
     display: block;
-    width: 400px;
+    width: 640px;
 }
 
 .container > button {
