@@ -23,7 +23,7 @@ public class StorageSqlLite : IStorageProvider
 CREATE TABLE IF NOT EXISTS faces (
     id text PRIMARY KEY,
     faceid text,
-    name text,
+    name text NOT NULL,
     expire text NOT NULL,
     image blob
 ) WITHOUT ROWID";
@@ -64,27 +64,45 @@ CREATE TABLE IF NOT EXISTS face_encodings (
         await command.ExecuteNonQueryAsync();
     }
 
-    public async Task<Dictionary<string, List<Guid>>> GetKnownFacesAsync()
+    public async Task<Dictionary<string, Person>> GetKnownFacesAsync()
     {
-        var res = new Dictionary<string, List<Guid>>();
+        // TODO: refactor
+        var res = new Dictionary<string, Person>();
         using var connection = new SqliteConnection("Data Source=faces.db");
         await connection.OpenAsync();
         var command = connection.CreateCommand();
-        command.CommandText = @"SELECT name, faceid FROM faces where expire > Date()";
+        command.CommandText = @"
+select name, f.faceid, expire, fe.encoding from faces as f
+left join face_encodings fe on f.faceid = fe.faceid where expire > Date()";
         using var reader = await command.ExecuteReaderAsync();
+
+        Face NewFace(string s, string name1, string? encoding1)
+        {
+            var face = new Face
+            {
+                Id = Guid.Parse(s),
+                Name = name1,
+            };
+            if (encoding1 != null)
+            {
+                face.Encoding = encoding1.ToDoubleArray();
+            }
+
+            return face;
+        }
+
         while (await reader.ReadAsync())
         {
             var name = reader.GetString(0);
             var faceId = reader.GetString(1);
+            var encoding = !reader.IsDBNull(3) ? reader.GetString(3) : null;
 
-            if (res.ContainsKey(name))
+            if (!res.ContainsKey(name))
             {
-                res[name].Add(Guid.Parse(faceId));
+                res.Add(name, new Person { Name = name, Faces = new List<Face>()});
             }
-            else
-            {
-                res.Add(name, new List<Guid> { Guid.Parse(faceId) });
-            }
+            var newFace = NewFace(faceId, name, encoding);
+            res[name].Faces.Add(newFace);
         }
 
         return res;
@@ -107,8 +125,6 @@ CREATE TABLE IF NOT EXISTS face_encodings (
             command.CommandText = "INSERT INTO face_encodings (faceid, encoding) values($faceid, $encoding)";
             await command.ExecuteNonQueryAsync();
         }
-        
-        
     }
 
     private string TurnIntoText(double[] arr)

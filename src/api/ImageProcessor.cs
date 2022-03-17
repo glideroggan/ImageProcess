@@ -79,14 +79,9 @@ namespace api
             // PERF: don't save to file, if not async, use the stream directly
             var profile = await ReadDataFromRequestAndWriteToFileAsync(context, filename);
 
-            // get face locations
-            // using var unknownImage = MyFaceDetector.LoadImageFile(profile.PathToImage);
-            // var faceLocations = MyFaceDetector.FaceLocations(unknownImage);
-
             // TODO: cut image to only get one face
             // https://docs.microsoft.com/en-us/dotnet/api/system.drawing.bitmap?view=dotnet-plat-ext-6.0
             // using var bitmap = unknownImage.ToBitmap();
-
             
             var faces = (await _faceDetector.FaceDetectAsync(profile.PathToImage)).ToList();
             if (!faces.Any())
@@ -105,7 +100,7 @@ namespace api
             }
 
             var faceIds = await _storageProvider.GetKnownFacesAsync();
-            var verifyResults = await _faceDetector.FaceVerifyAsync(faces.First().Id, faceIds);
+            var verifyResults = await _faceDetector.FaceVerifyAsync(faces.Single(), faceIds);
 
             var res = new FaceMatch
             {

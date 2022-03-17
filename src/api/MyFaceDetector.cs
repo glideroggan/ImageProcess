@@ -1,4 +1,5 @@
 ﻿using contracts;
+using DlibDotNet;
 using FaceRecognitionDotNet;
 
 namespace api;
@@ -51,13 +52,39 @@ public class MyFaceDetector : IFaceDetector
         await _storage.SaveFaceEncodingAsync(myFaceEncodings);
         return myFaceEncodings.Select(x => new Face
         {
-            Id = x.FaceId
+            Id = x.FaceId,
+            Encoding = x.FaceEncoding,
         });
     }
 
-    public Task<List<FaceVerify>> FaceVerifyAsync(Guid face1, Dictionary<string, List<Guid>> faces)
+    public ValueTask<List<FaceVerify>> FaceVerifyAsync(Face face, Dictionary<string, Person> people)
     {
         // https://github.com/takuya-takeuchi/DlibDotNet/blob/develop/examples/DnnFaceRecognition/Program.cs
-        throw new NotImplementedException();
+        var res = new List<FaceVerify>();
+        // TODO: compare face1 with the list of faceIds and those that are the nearest should be more similar
+        // var t = faceIds.Select(x => new FaceEncoding())
+        // PERF: use the FaceDistances, to compare several at once
+        foreach (var person in people.Values)
+        {
+            foreach (var knownFace in person.Faces)
+            {
+                var face1 = FaceRecognition.LoadFaceEncoding(face.Encoding);
+                if (knownFace.Encoding == null) continue;   // BUG: if we get encodings from azure, we should have the encodings here
+                var face2 = FaceRecognition.LoadFaceEncoding(knownFace.Encoding);
+                var dist = FaceRecognition.FaceDistance(face1, face2);
+                if (dist < .6)
+                {
+                    res.Add(new FaceVerify
+                    {
+                        Confidence = dist,
+                        Person = person.Name,
+                        IsIdentical = dist < 0.9
+                    });
+                }
+            }
+        }
+
+        return new ValueTask<List<FaceVerify>>(res);
+        
     }
 }

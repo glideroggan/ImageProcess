@@ -1,8 +1,14 @@
 ﻿using contracts;
 using Microsoft.Azure.CognitiveServices.Vision.Face;
-using Microsoft.Azure.CognitiveServices.Vision.Face.Models;
+using Person = contracts.Person;
 
 namespace azure_face;
+
+/*
+ * TODO:
+ *  - can we get the face encoding values of Azure?
+ */
+
 
 public class AzureFaceServicesOptions
 {
@@ -29,7 +35,7 @@ public class AzureFaceServices : IFaceDetector
         return detectedFaces.Select(detectedFace => new Face { Id = detectedFace.FaceId.Value }).ToList();
     }
 
-    public async Task<List<FaceVerify>> FaceVerifyAsync(Guid face1, Dictionary<string, List<Guid>> faces)
+    public async ValueTask<List<FaceVerify>> FaceVerifyAsync(Face face1, Dictionary<string, Person> faces)
     {
         var client = new FaceClient(new ApiKeyServiceClientCredentials(_subscriptionKey)) { Endpoint = _endpoint };
         // using var fileStream = File.Open(pathToImage, FileMode.Open, FileAccess.Read);
@@ -38,12 +44,12 @@ public class AzureFaceServices : IFaceDetector
         // TODO: for now run the api for each faceId, but later we should send in ONE faceId and it will match it
         // with an already stored faceId, and we can check in db who that is
         var results = new List<FaceVerify>(); 
-        foreach (var person in faces)
+        foreach (var person in faces.Values)
         {
-            foreach (var faceId in person.Value)
+            foreach (var face in person.Faces)
             {
-                var res = await client.Face.VerifyFaceToFaceAsync(face1, faceId);
-                results.Add(new FaceVerify { Person = person.Key, Confidence = res.Confidence, IsIdentical = res.IsIdentical});
+                var res = await client.Face.VerifyFaceToFaceAsync(face.Id, face.Id);
+                results.Add(new FaceVerify { Person = person.Name, Confidence = res.Confidence, IsIdentical = res.IsIdentical});
             }
         }
 
