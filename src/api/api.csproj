@@ -8,7 +8,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
     <Configurations>Release;Debug</Configurations>
-    <Platforms>AnyCPU;win-x64;x64</Platforms>
     
   </PropertyGroup>
 
@@ -18,8 +17,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="dlibdotnet" Version="19.21.0.20220130" />
-    <PackageReference Include="facerecognitiondotnet" Version="1.3.0.6" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
 
@@ -27,28 +24,12 @@
     <Content Update="wwwroot" CopyToOutputDirectory="Never" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Models" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Models\shape_predictor_68_face_landmarks.dat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Models\shape_predictor_5_face_landmarks.dat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Models\dlib_face_recognition_resnet_model_v1.dat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Models\mmod_human_face_detector.dat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+  
 
   <ItemGroup>
     <ProjectReference Include="..\azure-face\azure-face.csproj" />
     <ProjectReference Include="..\contracts\contracts.csproj" />
+    <ProjectReference Include="..\DlibFaceDetector\DlibFaceDetector.csproj" />
     <ProjectReference Include="..\storage-sqllite\storage-sqllite.csproj" />
   </ItemGroup>
 

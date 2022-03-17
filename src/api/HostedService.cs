@@ -1,10 +1,18 @@
-﻿namespace api;
+﻿using contracts;
+using DlibFaceDetector;
+
+namespace api;
 
 public class HostedServiceFaceDetect : IHostedService
 {
     private CancellationTokenSource _cts;
     private FileSystemWatcher _watcher;
+    private readonly IFaceDetector _faceDetector;
 
+    public HostedServiceFaceDetect(IFaceDetector faceDetector)
+    {
+        _faceDetector = faceDetector;
+    }
     public Task StartAsync(CancellationToken cancellationToken)
     {
         _cts = new CancellationTokenSource();
@@ -34,7 +42,7 @@ public class HostedServiceFaceDetect : IHostedService
         // TODO: continue here
         // get face location
         using var unknownImage = MyFaceDetector.LoadImageFile(e.FullPath);
-        var faceLocations = MyFaceDetector.FaceLocations(unknownImage);
+        // var faceLocations = _faceDetector..FaceLocations(unknownImage);
      
         // TODO: delete the image when done, beware of the using above
     }

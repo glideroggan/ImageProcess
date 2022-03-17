@@ -48,6 +48,9 @@ public class AzureFaceServices : IFaceDetector
         {
             foreach (var face in person.Faces)
             {
+                // TODO: we need to add SystemId, as the faceIds can't be mixed
+                // between the different detectors
+                if (face.Encoding != null) continue;    
                 var res = await client.Face.VerifyFaceToFaceAsync(face.Id, face.Id);
                 results.Add(new FaceVerify { Person = person.Name, Confidence = res.Confidence, IsIdentical = res.IsIdentical});
             }

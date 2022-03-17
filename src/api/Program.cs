@@ -20,15 +20,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddSingleton<ImageProcessor>();
 // local service
-builder.Services.AddSingleton<IFaceDetector, MyFaceDetector>();
+// builder.Services.AddSingleton<IFaceDetector, MyFaceDetector>();
 // Azure
-// builder.Services.AddSingleton<IFaceDetector>(provider =>
-// {
-//     var configuration = provider.GetRequiredService<IConfiguration>();
-//     var opt = new AzureFaceServicesOptions();
-//     configuration.GetSection(AzureFaceServicesOptions.AzureFaceServices).Bind(opt);
-//     return new AzureFaceServices(opt.ApiKey, opt.Endpoint);
-// });
+builder.Services.AddSingleton<IFaceDetector>(provider =>
+{
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    var opt = new AzureFaceServicesOptions();
+    configuration.GetSection(AzureFaceServicesOptions.AzureFaceServices).Bind(opt);
+    return new AzureFaceServices(opt.ApiKey, opt.Endpoint);
+});
 builder.Services.AddSingleton<IStorageProvider, StorageSqlLite>();
 
 
@@ -36,7 +36,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddHostedService<HostedServiceFaceDetect>();
+// FEATURE: this will be needed once we enable async feature on the verified endpoint
+// builder.Services.AddHostedService<HostedServiceFaceDetect>();
 
 var app = builder.Build();
 

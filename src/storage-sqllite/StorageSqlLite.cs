@@ -6,6 +6,9 @@ using Microsoft.Data.Sqlite;
 namespace storage_sqllite;
 
 /* TODO:
+ *  - Add column for systemId
+ *      As we have more than one way to do face recognition and the IDs are not shared between the systems, we should
+ *      only query faceIDs for the correct system
  *  - use Guid in db?
  *      https://stackoverflow.com/questions/18954130/can-we-use-guid-as-a-primary-key-in-sqlite-database
  * 

@@ -1,20 +1,18 @@
 ﻿using contracts;
-using DlibDotNet;
 using FaceRecognitionDotNet;
 
-namespace api;
+namespace DlibFaceDetector;
 
-// TODO: this should probably use IFaceDetector
 public class MyFaceDetector : IFaceDetector
 {
-    private static FaceRecognition _service;
+    private readonly FaceRecognition _service;
 
     // TODO: how do we set up the storage before starting to use it?
     private readonly IStorageProvider _storage;
 
     public MyFaceDetector(IStorageProvider storageProvider)
     {
-        var basePath = Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
+        var basePath = Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule!.FileName);
         _service = FaceRecognition.Create(basePath + Path.DirectorySeparatorChar + "Models");
         _storage = storageProvider;
     }
@@ -24,7 +22,7 @@ public class MyFaceDetector : IFaceDetector
         return FaceRecognition.LoadImageFile(path);
     }
 
-    public static IEnumerable<Location> FaceLocations(Image image)
+    public IEnumerable<Location> FaceLocations(Image image)
     {
         return _service.FaceLocations(image, 0);
     }
