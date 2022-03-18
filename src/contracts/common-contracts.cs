@@ -1,4 +1,6 @@
-﻿namespace contracts;
+﻿using System.Drawing;
+
+namespace contracts;
 
 public interface IFaceDetector
 {
@@ -28,9 +30,15 @@ public class FaceMatch
 
 public class FaceVerify
 {
-    public string Person { get; set; }
-    public double Confidence { get; set; }
-    public bool IsIdentical { get; set; }
+    public FaceVerify(double confidence, string person)
+    {
+        Person = person;
+        Confidence = confidence;
+        IsIdentical = confidence < .9;
+    }
+    public string Person { get; init; }
+    public double Confidence { get; init; }
+    public bool IsIdentical { get; }
 }
 
 public class Person
@@ -44,4 +52,5 @@ public class Face
     public Guid Id { get; set; }
     public string Name { get; set; }
     public double[]? Encoding { get; set; }
+    public Rectangle Location { get; set; }
 }

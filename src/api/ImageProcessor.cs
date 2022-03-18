@@ -6,13 +6,14 @@ namespace api
 {
     public class Profile
     {
-        public Profile(int id, string filename)
+        public Profile(string filename, string? name)
         {
             PathToImage = filename;
+            Name = name;
         }
 
-        public string PathToImage { get; private set; }
-        public string Name { get; set; }
+        public string PathToImage { get; }
+        public string? Name { get; set; }
     }
 
     public class ApiResults<T>
@@ -23,8 +24,13 @@ namespace api
 
     public class ApiError
     {
-        public int StatusCode { get; set; }
-        public string Message { get; set; }
+        public ApiError(int statusCode, string message)
+        {
+            StatusCode = statusCode;
+            Message = message;
+        }
+        public int StatusCode { get; init; }
+        public string Message { get; init; }
     }
 
     public class ImageProcessor
@@ -44,8 +50,7 @@ namespace api
             // PERF: use an array pool here instead
             // TODO: we should precount the counter based on the images in the folder already
             var filename = $"upload{idCounter}.jpg";
-            var profile = await ReadDataFromRequestAndWriteToFileAsync(context, filename);
-            profile.Name = name;
+            var profile = await ReadDataFromRequestAndWriteToFileAsync(context, filename, name);
 
             var results = new ApiResults<bool>();
             var defaultTtlFace = TimeSpan.FromHours(24);
@@ -54,7 +59,7 @@ namespace api
             {
                 return new ApiResults<bool>
                 {
-                    Error = new ApiError { StatusCode = 400, Message = "No face found!" }
+                    Error = new ApiError(400, "No face found!")
                 };
             }
 
@@ -77,7 +82,7 @@ namespace api
             // PERF: use an array pool here instead
             var filename = $"image{idCounter}.jpg";
             // PERF: don't save to file, if not async, use the stream directly
-            var profile = await ReadDataFromRequestAndWriteToFileAsync(context, filename);
+            var profile = await ReadDataFromRequestAndWriteToFileAsync(context, filename, null);
 
             // TODO: cut image to only get one face
             // https://docs.microsoft.com/en-us/dotnet/api/system.drawing.bitmap?view=dotnet-plat-ext-6.0
@@ -88,14 +93,14 @@ namespace api
             {
                 return new ApiResults<FaceMatch>
                 {
-                    Error = new ApiError { StatusCode = 400, Message = "No face found!" }
+                    Error = new ApiError(400, "No face found!")
                 };
             }
             if (faces.Count > 1)
             {
                 return new ApiResults<FaceMatch>
                 {
-                    Error = new ApiError { StatusCode = 401, Message = "Too many faces!" }
+                    Error = new ApiError(401, "Too many faces!")
                 };
             }
 
@@ -117,12 +122,13 @@ namespace api
             };
         }
 
-        private async Task<Profile> ReadDataFromRequestAndWriteToFileAsync(HttpContext context, string filename)
+        private async Task<Profile> ReadDataFromRequestAndWriteToFileAsync(HttpContext context, string filename,
+            string? name=default)
         {
             var reader = context.Request.BodyReader;
 
             var path = $"processFolder/{filename}";
-            var profileResults = new Profile(idCounter++, path);
+            var profileResults = new Profile(path, name);
             using var fileStream = File.Create(path);
             var writer = PipeWriter.Create(fileStream);
             try

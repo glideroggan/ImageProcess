@@ -13,8 +13,8 @@ namespace azure_face;
 public class AzureFaceServicesOptions
 {
     public const string AzureFaceServices = "AzureFaceServices";
-    public string ApiKey { get; set; }
-    public string Endpoint { get; set; }
+    public string? ApiKey { get; set; } = default;
+    public string? Endpoint { get; set; } = default;
 }
 
 public class AzureFaceServices : IFaceDetector
@@ -32,7 +32,7 @@ public class AzureFaceServices : IFaceDetector
         var client = new FaceClient(new ApiKeyServiceClientCredentials(_subscriptionKey)) { Endpoint = _endpoint };
         using var fileStream = File.Open(pathToImage, FileMode.Open, FileAccess.Read);
         var detectedFaces = await client.Face.DetectWithStreamAsync(fileStream);
-        return detectedFaces.Select(detectedFace => new Face { Id = detectedFace.FaceId.Value }).ToList();
+        return detectedFaces.Select(detectedFace => new Face { Id = detectedFace.FaceId!.Value }).ToList();
     }
 
     public async ValueTask<List<FaceVerify>> FaceVerifyAsync(Face face1, Dictionary<string, Person> faces)
@@ -52,7 +52,9 @@ public class AzureFaceServices : IFaceDetector
                 // between the different detectors
                 if (face.Encoding != null) continue;    
                 var res = await client.Face.VerifyFaceToFaceAsync(face.Id, face.Id);
-                results.Add(new FaceVerify { Person = person.Name, Confidence = res.Confidence, IsIdentical = res.IsIdentical});
+                results.Add(new FaceVerify(res.Confidence, person.Name));
+                // TODO: make sure that Azure have the same delta value for the identical before rejecting this line
+                // { Person = person.Name, Confidence = res.Confidence, IsIdentical = res.IsIdentical});
             }
         }
 

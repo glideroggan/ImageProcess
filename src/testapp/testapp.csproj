@@ -16,6 +16,11 @@
 
   <ItemGroup>
     <PackageReference Include="Emgu.CV" Version="4.5.5.4823" />
+    <PackageReference Include="nyviken.flagparser" Version="0.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DlibFaceDetector\DlibFaceDetector.csproj" />
   </ItemGroup>
 
 </Project>
