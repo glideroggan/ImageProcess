@@ -1,6 +1,7 @@
 using api;
 using azure_face;
 using contracts;
+using DlibFaceDetector;
 using storage_sqllite;
 
 /* TODO:
@@ -19,16 +20,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddSingleton<ImageProcessor>();
+// TODO: register both detectors, and then use features, so that we can choose a detector that have the feature
+// we want
 // local service
-// builder.Services.AddSingleton<IFaceDetector, MyFaceDetector>();
+builder.Services.AddSingleton<IFaceDetector, MyFaceDetector>();
 // Azure
-builder.Services.AddSingleton<IFaceDetector>(provider =>
-{
-    var configuration = provider.GetRequiredService<IConfiguration>();
-    var opt = new AzureFaceServicesOptions();
-    configuration.GetSection(AzureFaceServicesOptions.AzureFaceServices).Bind(opt);
-    return new AzureFaceServices(opt.ApiKey, opt.Endpoint);
-});
+// builder.Services.AddSingleton<IFaceDetector>(provider =>
+// {
+//     var configuration = provider.GetRequiredService<IConfiguration>();
+//     var opt = new AzureFaceServicesOptions();
+//     configuration.GetSection(AzureFaceServicesOptions.AzureFaceServices).Bind(opt);
+//     return new AzureFaceServices(opt.ApiKey, opt.Endpoint);
+// });
 builder.Services.AddSingleton<IStorageProvider, StorageSqlLite>();
 
 
@@ -55,5 +58,8 @@ app.MapPost("/api/verify", async (HttpContext ctx, bool? async) =>
     await imageProcess.VerifyFace(ctx, async));
 // TODO: we want to be able to send in an faceId here, so that we can tell that it belongs to the same face
 app.MapPost("/api/upload/{name}", async (string name, HttpContext ctx) => await imageProcess.AddNewFace(ctx, name));
+// TODO: try to create a nice REST structure for faces
+app.MapGet("/api/faces/{faceId}/attributes", async (Guid faceId, HttpContext ctx) => await imageProcess.GetAttributes(ctx, faceId));
+app.MapGet("/api/faces", async (ctx) => await imageProcess.GetFaces(ctx));
 
 app.Run();

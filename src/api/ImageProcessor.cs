@@ -67,6 +67,8 @@ namespace api
 
             return results;
         }
+        
+        
 
         internal async Task<ApiResults<FaceMatch>> VerifyFace(HttpContext context, bool? async = default)
         {
@@ -149,6 +151,27 @@ namespace api
             }
 
             return profileResults;
+        }
+
+        public async Task GetAttributes(HttpContext ctx, Guid faceId)
+        {
+            // TODO: check with azure which kind of attributes it have
+            
+            // check which system the faceId belongs to
+            // var (systemId) = _storageProvider.GetFaceAsync(faceId);
+            
+            // get that feature from the data
+            
+            
+            throw new NotImplementedException();
+        }
+
+        public async Task GetFaces(HttpContext context)
+        {
+            // TODO: return all stored faces
+            await _storageProvider.GetKnownFacesAsync();
+            
+            throw new NotImplementedException();
         }
     }
 }
