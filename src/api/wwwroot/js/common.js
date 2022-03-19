@@ -2,7 +2,7 @@
 
 function sendRequestVerifyImage(blob, successCallback, errorCallback) {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/api/verify', true);
+    xhr.open('POST', '/api/faces/verify', true);
     xhr.setRequestHeader('content-type', 'image/jpg');
     xhr.onload = function () {
         if (this.status === 200) {

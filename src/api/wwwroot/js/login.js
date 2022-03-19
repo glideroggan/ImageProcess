@@ -14,6 +14,9 @@ function takeSnapshot(video, elCanvas, passed, sendDataCallback) {
         sendDataCallback(blob, name => {
                 if (name === null) {
                     msgFn('who is this?!');
+                    video.pause();
+                    video.srcObject.getTracks()[0].stop();
+                    stop();
                 } else {
                     video.pause();
                     video.srcObject.getTracks()[0].stop();

@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS faces (
     faceid text,
     name text NOT NULL,
     expire text NOT NULL,
+    system_id text NOT NULL,
     image blob
 ) WITHOUT ROWID";
         command.ExecuteNonQuery();
@@ -41,7 +42,7 @@ CREATE TABLE IF NOT EXISTS face_encodings (
     }
 
 
-    public async Task AddFacesAsync(string name, DateOnly expireDate, byte[]? blob = null, params Face[] faces)
+    public async Task AddFacesAsync(string name, DateOnly expireDate, string systemId, byte[]? blob = null, params Face[] faces)
     {
         // TODO: make support to add several faceId at the same time
         var face = faces.First();
@@ -52,16 +53,17 @@ CREATE TABLE IF NOT EXISTS face_encodings (
         command.Parameters.AddWithValue("$faceid", face.Id.ToString("N"));
         command.Parameters.AddWithValue("$name", name);
         command.Parameters.AddWithValue("$expire", expireDate.ToString("yyyy-MM-dd"));
+        command.Parameters.AddWithValue("$systemid", systemId);
         if (blob != null)
         {
             command.Parameters.AddWithValue("$blob", blob ?? null);
             command.CommandText =
-                "insert into faces (id, faceid, name, image, expire) values($id, $faceid, $name, $blob, $expire)";
+                "insert into faces (id, faceid, name, image, expire, system_id) values($id, $faceid, $name, $blob, $expire, $systemid)";
         }
         else
         {
             command.CommandText =
-                "insert into faces (id, faceid, name, image, expire) values($id, $faceid, $name, null, $expire)";
+                "insert into faces (id, faceid, name, image, expire, system_id) values($id, $faceid, $name, null, $expire, $systemid)";
         }
 
         await command.ExecuteNonQueryAsync();

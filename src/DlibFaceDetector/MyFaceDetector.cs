@@ -9,6 +9,7 @@ public class MyFaceDetector : IFaceDetector
 
     // TODO: how do we set up the storage before starting to use it?
     private readonly IStorageProvider _storage;
+    public string Identifier => "Dlibdotnet";
 
     public MyFaceDetector(IStorageProvider storageProvider)
     {
@@ -57,10 +58,10 @@ public class MyFaceDetector : IFaceDetector
 
     public ValueTask<List<FaceVerify>> FaceVerifyAsync(Face face, Dictionary<string, Person> people)
     {
+        if (people.Values.Count == 0) throw new Exception("No faces found in storage");
         // https://github.com/takuya-takeuchi/DlibDotNet/blob/develop/examples/DnnFaceRecognition/Program.cs
         var res = new List<FaceVerify>();
         // TODO: compare face1 with the list of faceIds and those that are the nearest should be more similar
-        // var t = faceIds.Select(x => new FaceEncoding())
         // PERF: use the FaceDistances, to compare several at once
         foreach (var person in people.Values)
         {
@@ -85,4 +86,6 @@ public class MyFaceDetector : IFaceDetector
         return new ValueTask<List<FaceVerify>>(res);
         
     }
+
+    
 }

@@ -7,7 +7,7 @@
 function sendRequestVerifyImage(blob, successCallback, errorCallback) {
     const xhr = new XMLHttpRequest();
     console.log('data sent:', blob.size);
-    xhr.open('POST', '/api/verify', true);
+    xhr.open('POST', '/api/faces/verify', true);
     xhr.setRequestHeader('content-type', 'image/jpg');
     xhr.onload = function () {
         if (this.status === 200) {
@@ -62,7 +62,7 @@ function start() {
         canvas_add.toBlob(blob => {
             debugImg(blob);
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', `/api/upload/${add_face_name.value}`, true);
+            xhr.open('POST', `/api/faces/${add_face_name.value}`, true);
             xhr.setRequestHeader('content-type', 'image/jpg');
             xhr.onload = function () {
                 if (this.status === 200) {

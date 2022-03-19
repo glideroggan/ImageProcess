@@ -29,6 +29,7 @@ namespace api
             StatusCode = statusCode;
             Message = message;
         }
+
         public int StatusCode { get; init; }
         public string Message { get; init; }
     }
@@ -54,6 +55,7 @@ namespace api
             var profile = await ReadDataFromRequestAndWriteToFileAsync(context, filename, name);
 
             var results = new ApiResults<bool>();
+            // TODO: make this value configurable from the config
             var defaultTtlFace = TimeSpan.FromHours(24);
             var faces = await _faceDetector.FaceDetectAsync(profile.PathToImage);
             if (!faces.Any())
@@ -68,11 +70,12 @@ namespace api
 
             // store the faceIds
             // TODO: add the image that belongs with the id
-            await _storageProvider.AddFacesAsync(name, DateOnly.FromDateTime(DateTime.UtcNow.Add(defaultTtlFace)), null,
-                faces.First());
+            await _storageProvider.AddFacesAsync(name, DateOnly.FromDateTime(DateTime.UtcNow.Add(defaultTtlFace)),
+                _faceDetector.Identifier,null,faces.First());
 
             return results;
         }
+
 
         internal async Task<ApiResults<FaceMatch>> VerifyFace(HttpContext context)
         {
@@ -88,7 +91,7 @@ namespace api
             // TODO: cut image to only get one face
             // https://docs.microsoft.com/en-us/dotnet/api/system.drawing.bitmap?view=dotnet-plat-ext-6.0
             // using var bitmap = unknownImage.ToBitmap();
-            
+
             var faces = (await _faceDetector.FaceDetectAsync(profile.PathToImage)).ToList();
             if (!faces.Any())
             {
@@ -97,6 +100,7 @@ namespace api
                     Error = new ApiError(400, "No face found!")
                 };
             }
+
             if (faces.Count > 1)
             {
                 return new ApiResults<FaceMatch>
@@ -123,11 +127,9 @@ namespace api
             };
         }
 
-        
-        
-        
+
         private async Task<Profile> ReadDataFromRequestAndWriteToFileAsync(HttpContext context, string filename,
-            string? name=default)
+            string? name = default)
         {
             var reader = context.Request.BodyReader;
 
@@ -159,6 +161,27 @@ namespace api
             }
 
             return profileResults;
+        }
+
+        public async Task GetAttributes(HttpContext ctx, Guid faceId = default)
+        {
+            // TODO: check with azure which kind of attributes it have
+
+            // check which system the faceId belongs to
+            // var (systemId) = _storageProvider.GetFaceAsync(faceId);
+
+            // get that feature from the data
+
+
+            throw new NotImplementedException();
+        }
+
+        public async Task GetFaces(HttpContext context, Guid faceId = default)
+        {
+            // TODO: return all stored faces OR just one faceId if used
+            await _storageProvider.GetKnownFacesAsync();
+
+            throw new NotImplementedException();
         }
     }
 }

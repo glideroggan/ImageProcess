@@ -21,6 +21,7 @@ public class AzureFaceServices : IFaceDetector
 {
     private static string _subscriptionKey = "";
     private static string _endpoint = "";
+    public string Identifier => "Azure";
 
     public AzureFaceServices(string apiKey, string endpoint)
     {
@@ -58,4 +59,6 @@ public class AzureFaceServices : IFaceDetector
 
         return results;
     }
+
+    
 }

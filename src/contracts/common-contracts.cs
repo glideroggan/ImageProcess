@@ -5,11 +5,12 @@ public interface IFaceDetector
     // TODO: we should set the TTL of the faces already here, so that we can set the expire timer in storage
     Task<IEnumerable<Face>> FaceDetectAsync(string pathToImage);
     ValueTask<List<FaceVerify>> FaceVerifyAsync(Face face1, Dictionary<string, Person> faces);
+    string Identifier { get; }
 }
 
 public interface IStorageProvider
 {
-    Task AddFacesAsync(string name, DateOnly expireDate, byte[]? blob = null, params Face[] faces);
+    Task AddFacesAsync(string name, DateOnly expireDate, string systemId, byte[]? blob = null, params Face[] faces);
     Task<Dictionary<string, Person>> GetKnownFacesAsync();
     Task SaveFaceEncodingAsync(IEnumerable<MyFaceEncoding> newFaces);
 }
