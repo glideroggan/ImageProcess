@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Configurations>Debug;Release;Debug Copy</Configurations>
-    <Platforms>AnyCPU;win-x64</Platforms>
+    <Platforms>AnyCPU;win-x64;x64</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug Copy|win-x64' ">

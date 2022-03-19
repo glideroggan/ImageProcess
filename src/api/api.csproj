@@ -4,10 +4,10 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
 <!--    <RuntimeIdentifier>win-x64</RuntimeIdentifier>-->
-<!--    <Platforms>win-x64</Platforms>-->
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
     <Configurations>Release;Debug</Configurations>
+    <Platforms>AnyCPU;x64</Platforms>
     
   </PropertyGroup>
 
