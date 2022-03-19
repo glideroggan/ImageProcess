@@ -1,6 +1,6 @@
 ﻿namespace contracts;
 
-public interface IFaceDetector
+public interface IFacePlugin
 {
     // TODO: we should set the TTL of the faces already here, so that we can set the expire timer in storage
     Task<IEnumerable<Face>> FaceDetectAsync(string pathToImage);
@@ -8,11 +8,18 @@ public interface IFaceDetector
     string Identifier { get; }
 }
 
+public interface IFaceDetector
+{
+    Task<List<FaceVerify>> FaceVerifyAsync(Face faceToIdentify, string systemId);
+    Task<List<Face>> FaceDetectAsync(string profilePathToImage, string name, TimeSpan expireTtl);
+    Task<List<Face>> FaceDetectAsync(string profilePathToImage);
+}
+
 public interface IStorageProvider
 {
     Task AddFacesAsync(string name, DateOnly expireDate, string systemId, byte[]? blob = null, params Face[] faces);
-    Task<Dictionary<string, Person>> GetKnownFacesAsync();
-    Task SaveFaceEncodingAsync(IEnumerable<MyFaceEncoding> newFaces);
+    Task<Dictionary<string, Person>> GetKnownFacesAsync(string systemId);
+    Task SaveFaceEncodingAsync(double[] encoding, Guid faceId);
 }
 
 public class MyFaceEncoding
@@ -44,5 +51,6 @@ public class Face
 {
     public Guid Id { get; set; }
     public string Name { get; set; }
+    public string SystemId { get; set; }
     public double[]? Encoding { get; set; }
 }

@@ -41,7 +41,7 @@ public class HostedServiceFaceDetect : IHostedService
     {
         // TODO: continue here
         // get face location
-        using var unknownImage = MyFaceDetector.LoadImageFile(e.FullPath);
+        using var unknownImage = DlibFace.LoadImageFile(e.FullPath);
         // var faceLocations = _faceDetector..FaceLocations(unknownImage);
      
         // TODO: delete the image when done, beware of the using above

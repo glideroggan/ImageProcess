@@ -69,24 +69,26 @@ CREATE TABLE IF NOT EXISTS face_encodings (
         await command.ExecuteNonQueryAsync();
     }
 
-    public async Task<Dictionary<string, Person>> GetKnownFacesAsync()
+    public async Task<Dictionary<string, Person>> GetKnownFacesAsync(string systemId)
     {
         // TODO: refactor
         var res = new Dictionary<string, Person>();
         using var connection = new SqliteConnection("Data Source=faces.db");
         await connection.OpenAsync();
         var command = connection.CreateCommand();
+        command.Parameters.AddWithValue("$systemid", systemId);
         command.CommandText = @"
-select name, f.faceid, expire, fe.encoding from faces as f
-left join face_encodings fe on f.faceid = fe.faceid where expire > Date()";
+select name, f.faceid, expire, fe.encoding, f.system_id from faces as f
+left join face_encodings fe on f.faceid = fe.faceid where expire > Date() and system_id = $systemid";
         using var reader = await command.ExecuteReaderAsync();
 
-        Face NewFace(string s, string name1, string? encoding1)
+        Face NewFace(string s, string name1, string? encoding1, string systemId)
         {
             var face = new Face
             {
                 Id = Guid.Parse(s),
                 Name = name1,
+                SystemId = systemId
             };
             if (encoding1 != null)
             {
@@ -101,19 +103,20 @@ left join face_encodings fe on f.faceid = fe.faceid where expire > Date()";
             var name = reader.GetString(0);
             var faceId = reader.GetString(1);
             var encoding = !reader.IsDBNull(3) ? reader.GetString(3) : null;
+            // var systemId = reader.GetString(4);
 
             if (!res.ContainsKey(name))
             {
                 res.Add(name, new Person { Name = name, Faces = new List<Face>()});
             }
-            var newFace = NewFace(faceId, name, encoding);
+            var newFace = NewFace(faceId, name, encoding, systemId);
             res[name].Faces.Add(newFace);
         }
 
         return res;
     }
 
-    public async Task SaveFaceEncodingAsync(IEnumerable<MyFaceEncoding> newFaces)
+    public async Task SaveFaceEncodingAsync(double[] encoding, Guid faceId)
     {
         /*
          * add to table face_encodings
@@ -121,15 +124,12 @@ left join face_encodings fe on f.faceid = fe.faceid where expire > Date()";
          */
         using var connection = new SqliteConnection("Data Source=faces.db");
         await connection.OpenAsync();
-        foreach (var face in newFaces)
-        {
-            var command = connection.CreateCommand();
-            command.Parameters.AddWithValue("$faceid", face.FaceId.ToString("N"));
-            command.Parameters.AddWithValue("$encoding", TurnIntoText(face.FaceEncoding));
+        var command = connection.CreateCommand();
+        command.Parameters.AddWithValue("$faceid", faceId.ToString("N"));
+        command.Parameters.AddWithValue("$encoding", TurnIntoText(encoding));
 
-            command.CommandText = "INSERT INTO face_encodings (faceid, encoding) values($faceid, $encoding)";
-            await command.ExecuteNonQueryAsync();
-        }
+        command.CommandText = "INSERT INTO face_encodings (faceid, encoding) values($faceid, $encoding)";
+        await command.ExecuteNonQueryAsync();
     }
 
     private string TurnIntoText(double[] arr)

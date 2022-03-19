@@ -39,12 +39,10 @@ namespace api
     {
         private int _idCounter;
         private readonly IFaceDetector _faceDetector;
-        private readonly IStorageProvider _storageProvider;
 
-        public ImageProcessor(IFaceDetector faceDetector, IStorageProvider storageProvider)
+        public ImageProcessor(IFaceDetector faceDetector)
         {
             _faceDetector = faceDetector;
-            _storageProvider = storageProvider;
         }
 
         internal async Task<ApiResults<bool>> AddNewFace(HttpContext context, string name)
@@ -57,7 +55,7 @@ namespace api
             var results = new ApiResults<bool>();
             // TODO: make this value configurable from the config
             var defaultTtlFace = TimeSpan.FromHours(24);
-            var faces = await _faceDetector.FaceDetectAsync(profile.PathToImage);
+            var faces = await _faceDetector.FaceDetectAsync(profile.PathToImage, name, defaultTtlFace);
             if (!faces.Any())
             {
                 return new ApiResults<bool>
@@ -70,8 +68,8 @@ namespace api
 
             // store the faceIds
             // TODO: add the image that belongs with the id
-            await _storageProvider.AddFacesAsync(name, DateOnly.FromDateTime(DateTime.UtcNow.Add(defaultTtlFace)),
-                _faceDetector.Identifier,null,faces.First());
+            // await _storageProvider.AddFacesAsync(name, DateOnly.FromDateTime(DateTime.UtcNow.Add(defaultTtlFace)),
+            //     _faceDetector.Identifier,null,faces.First());
 
             return results;
         }
@@ -92,6 +90,7 @@ namespace api
             // https://docs.microsoft.com/en-us/dotnet/api/system.drawing.bitmap?view=dotnet-plat-ext-6.0
             // using var bitmap = unknownImage.ToBitmap();
 
+
             var faces = (await _faceDetector.FaceDetectAsync(profile.PathToImage)).ToList();
             if (!faces.Any())
             {
@@ -109,8 +108,8 @@ namespace api
                 };
             }
 
-            var faceIds = await _storageProvider.GetKnownFacesAsync();
-            var verifyResults = await _faceDetector.FaceVerifyAsync(faces.Single(), faceIds);
+            var verifyResults = await _faceDetector.FaceVerifyAsync(
+                faces.Single(), faces.Single().SystemId);
 
             var res = new FaceMatch
             {
@@ -178,8 +177,9 @@ namespace api
 
         public async Task GetFaces(HttpContext context, Guid faceId = default)
         {
+            // TODO: here we might actually want to just use the storage?
             // TODO: return all stored faces OR just one faceId if used
-            await _storageProvider.GetKnownFacesAsync();
+            // await _storageProvider.GetKnownFacesAsync();
 
             throw new NotImplementedException();
         }

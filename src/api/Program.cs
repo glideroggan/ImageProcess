@@ -6,7 +6,6 @@ using storage_sqllite;
 
 /* TODO:
  *  - Change so that when adding a person, the snapshot is overtaking the camera feed for some seconds
- *  - Break out the local service MyFaceDetector to its own project
  * What happens if?
  *  - verify
  *      - and nothing in db?
@@ -20,18 +19,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddSingleton<ImageProcessor>();
-// TODO: register both detectors, and then use features, so that we can choose a detector that have the feature
-// we want
+builder.Services.AddSingleton<IFaceDetector, FaceDetector>();
 // local service
-builder.Services.AddSingleton<IFaceDetector, MyFaceDetector>();
+builder.Services.AddSingleton<IFacePlugin, DlibFace>();
 // Azure
-// builder.Services.AddSingleton<IFaceDetector>(provider =>
-// {
-//     var configuration = provider.GetRequiredService<IConfiguration>();
-//     var opt = new AzureFaceServicesOptions();
-//     configuration.GetSection(AzureFaceServicesOptions.AzureFaceServices).Bind(opt);
-//     return new AzureFaceServices(opt.ApiKey, opt.Endpoint);
-// });
+builder.Services.AddSingleton<IFacePlugin>(provider =>
+{
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    var opt = new AzureFaceServicesOptions();
+    configuration.GetSection(AzureFaceServicesOptions.AzureFaceServices).Bind(opt);
+    return new AzureFaceServices(opt.ApiKey, opt.Endpoint);
+});
 builder.Services.AddSingleton<IStorageProvider, StorageSqlLite>();
 
 
