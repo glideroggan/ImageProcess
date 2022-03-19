@@ -52,7 +52,7 @@ app.UseStaticFiles();
 var imageProcess = app.Services.GetRequiredService<ImageProcessor>();
 // TODO: we want parameter to this if the call is async or not
 app.MapPost("/api/verify", async (HttpContext ctx, bool? async) =>
-    await imageProcess.VerifyFace(ctx, async));
+    await imageProcess.VerifyFace(ctx));
 // TODO: we want to be able to send in an faceId here, so that we can tell that it belongs to the same face
 app.MapPost("/api/upload/{name}", async (string name, HttpContext ctx) => await imageProcess.AddNewFace(ctx, name));
 
