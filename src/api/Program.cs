@@ -53,13 +53,21 @@ app.UseDefaultFiles(defaultOptions);
 app.UseStaticFiles();
 
 var imageProcess = app.Services.GetRequiredService<ImageProcessor>();
-// TODO: we want parameter to this if the call is async or not
-app.MapPost("/api/verify", async (HttpContext ctx, bool? async) =>
-    await imageProcess.VerifyFace(ctx, async));
-// TODO: we want to be able to send in an faceId here, so that we can tell that it belongs to the same face
-app.MapPost("/api/upload/{name}", async (string name, HttpContext ctx) => await imageProcess.AddNewFace(ctx, name));
-// TODO: try to create a nice REST structure for faces
-app.MapGet("/api/faces/{faceId}/attributes", async (Guid faceId, HttpContext ctx) => await imageProcess.GetAttributes(ctx, faceId));
+
+/*
+ * GET "/api/faces/{faceId}/attributes" -> returns a list of attributes from storage about this faceId      
+ * POST "/api/faces/attributes" -> returns a list of attributes of the streamed image
+ * 
+ */
 app.MapGet("/api/faces", async (ctx) => await imageProcess.GetFaces(ctx));
+app.MapPost("/api/faces/{name}", async (string name, HttpContext ctx) => await imageProcess.AddNewFace(ctx, name));
+app.MapGet("/api/faces/{faceId}", async (HttpContext ctx, Guid faceId) => await imageProcess.GetFaces(ctx, faceId));
+app.MapPost("/api/faces/verify", async (HttpContext ctx, bool? async) => await imageProcess.VerifyFace(ctx, async));
+
+// TODO: needs to be implemented
+app.MapGet("/api/faces/{faceId}/attributes", async (Guid faceId, HttpContext ctx) =>
+    await imageProcess.GetAttributes(ctx, faceId));
+app.MapPost("/api/faces/attributes", async ctx => await imageProcess.GetAttributes(ctx));
+
 
 app.Run();

@@ -153,7 +153,7 @@ namespace api
             return profileResults;
         }
 
-        public async Task GetAttributes(HttpContext ctx, Guid faceId)
+        public async Task GetAttributes(HttpContext ctx, Guid faceId=default)
         {
             // TODO: check with azure which kind of attributes it have
             
@@ -166,9 +166,9 @@ namespace api
             throw new NotImplementedException();
         }
 
-        public async Task GetFaces(HttpContext context)
+        public async Task GetFaces(HttpContext context, Guid faceId=default)
         {
-            // TODO: return all stored faces
+            // TODO: return all stored faces OR just one faceId if used
             await _storageProvider.GetKnownFacesAsync();
             
             throw new NotImplementedException();
