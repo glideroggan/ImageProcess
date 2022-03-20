@@ -1,6 +1,9 @@
-﻿.container {
+﻿a {
+    display:block;
+}
+.container {
     border: 5px solid black;
-    display: block;
+    display: inline-block;
     width: 640px;
 }
 

@@ -4,25 +4,46 @@
     document.querySelector('#test-image').src = imageUrl;
 }
 
-function sendRequestVerifyImage(blob, successCallback, errorCallback) {
-    const xhr = new XMLHttpRequest();
-    console.log('data sent:', blob.size);
-    xhr.open('POST', '/api/faces/verify', true);
-    xhr.setRequestHeader('content-type', 'image/jpg');
-    xhr.onload = function () {
-        if (this.status === 200) {
-            successCallback(this.response);
-        } else {
-            errorCallback(this.response);
-        }
-    }
-    xhr.send(blob);
+// function sendRequestVerifyImage(endpoint, blob, successCallback, errorCallback) {
+//     const xhr = new XMLHttpRequest();
+//     console.log('data sent:', blob.size);
+//     xhr.open('POST', endpoint, true);
+//     xhr.setRequestHeader('content-type', 'image/jpg');
+//     xhr.onload = function () {
+//         if (this.status === 200) {
+//             successCallback(this.response);
+//         } else {
+//             errorCallback(this.response);
+//         }
+//     }
+//     xhr.send(blob);
+// }
+
+function takeSnapshot2(video, elCanvas) {
+    elCanvas.getContext('2d').drawImage(video, 0, 0, elCanvas.width, elCanvas.height);
+    elCanvas.toBlob(blob => {
+        sendRequestVerifyImage('/api/faces/attributes', blob, response => {
+            let json = JSON.parse(response);
+            if (json.error !== null && json.error.statusCode === 400) {
+                console.log('no face found in image');
+            } else if (json.data.identified === true) {
+                passed(json.data.name);
+            } else {
+                // not identified
+                console.log('who is this?!')
+            }
+
+        }, error => {
+            console.log('Some error occurred');
+            console.log(this.responseText);
+        })
+    }, 'image/jpeg', 1);
 }
 
 function takeSnapshot(video, elCanvas, passed) {
     elCanvas.getContext('2d').drawImage(video, 0, 0, elCanvas.width, elCanvas.height);
     elCanvas.toBlob(blob => {
-        sendRequestVerifyImage(blob, response => {
+        sendRequestVerifyImage('/api/faces/verify', blob, response => {
             let json = JSON.parse(response);
             if (json.error !== null && json.error.statusCode === 400) {
                 console.log('no face found in image');
@@ -48,7 +69,8 @@ function start() {
     let verifyFaceButton = document.querySelector("#verify-face");
     let canvas_verify = document.querySelector("#canvas-verify");
     const add_face_name = document.getElementById("name")
-    
+    const button_snapshot = document.querySelector("#snapshot-test");
+    const canvasTesting = document.querySelector("#canvas-testing");
 
     camera_button.addEventListener('click', async function () {
         let stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
@@ -78,6 +100,9 @@ function start() {
         takeSnapshot(video, canvas_verify, (name) => {
             console.log('verified: ', name);
         });
+    });
+    button_snapshot.addEventListener('click', function () {
+        takeSnapshot2(video, canvasTesting);
     });
 }
 

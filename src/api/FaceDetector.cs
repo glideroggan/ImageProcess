@@ -15,6 +15,7 @@ public class FaceDetector : IFaceDetector
         _plugins = plugins.ToArray();
         _storage = storage;
     }
+
     public async Task<List<FaceVerify>> FaceVerifyAsync(Face faceToIdentify, string systemId)
     {
         // verify a face only works if the face have been detected within the same system
@@ -36,12 +37,13 @@ public class FaceDetector : IFaceDetector
     public async Task<List<Face>> FaceDetectAsync(string pathToImage, string name, TimeSpan expireTtl)
     {
         var (faceList, identifier) = await DetectFaceInternal(pathToImage);
-        
+
         // save to storage
         await SaveToStorage(name, expireTtl, identifier, faceList);
 
         return faceList?.ToList();
     }
+
     /// <summary>
     /// Detect faces in the image
     /// No storage will be used
@@ -56,12 +58,21 @@ public class FaceDetector : IFaceDetector
         return faceList?.ToList();
     }
 
+    public async Task<Face> GetAttributesAsync(AttributeEnum attribute, Stream imageStream)
+    {
+        // TODO: check which plugins that support this attribute
+        var detector = _plugins.First(x => x.Identifier.StartsWith("Azure"));
+        
+        // TODO: should we call all the other needed endpoints in here first?
+        return await detector.GetAttributesAsync(imageStream);
+    }
+
     private async Task<(List<Face>, string)> DetectFaceInternal(string pathToImage)
     {
         // TODO: what to do when more than one face is found?
         IEnumerable<Face>? detectedFaces = null;
         var identifier = string.Empty;
-        
+
         foreach (var detector in _plugins)
         {
             detectedFaces = await detector.FaceDetectAsync(pathToImage);
@@ -75,7 +86,7 @@ public class FaceDetector : IFaceDetector
 
         if (!faceList.Any())
         {
-            throw new Exception("No faces found");
+            throw new FaceDetectorException("No faces found");
         }
 
         return (faceList, identifier);
@@ -90,6 +101,11 @@ public class FaceDetector : IFaceDetector
             faceList.ToArray());
         await _storage.SaveFaceEncodingAsync(faceList.Single().Encoding, faceList.Single().Id);
     }
+}
 
-    
+public class FaceDetectorException : Exception
+{
+    public FaceDetectorException(string msg) : base(msg)
+    {
+    }
 }

@@ -127,6 +127,63 @@ namespace api
         }
 
 
+        public async Task<ApiResults<Face>> GetAttributes(HttpContext ctx, AttributeEnum attribute,
+            Guid faceId = default)
+        {
+            // TODO: check with azure which kind of attributes it have
+            Stream imageStream = null;
+            try
+            {
+                if (faceId == default)
+                {
+                    // no id supplied
+                    imageStream = await GetStreamAsync(ctx);
+                }
+
+                var res = await _faceDetector.GetAttributesAsync(attribute, imageStream);
+                return new ApiResults<Face>
+                {
+                    Data = res
+                };
+            }
+            finally
+            {
+                imageStream?.Dispose();
+            }
+        }
+
+        // TODO: move it into its own wrapper, so we can make it IDisposable
+        private async Task<Stream> GetStreamAsync(HttpContext context)
+        {
+            var reader = context.Request.BodyReader;
+            var memStream = new MemoryStream((int)context.Request.ContentLength);
+            var writer = PipeWriter.Create(memStream, new StreamPipeWriterOptions(null, -1, true));
+            try
+            {
+                while (true)
+                {
+                    var readResult = await reader.ReadAsync();
+                    var buffer = readResult.Buffer;
+
+                    var dataToWrite = new byte[buffer.Length];
+                    buffer.CopyTo(dataToWrite);
+                    await writer.WriteAsync(dataToWrite);
+
+                    if (readResult.IsCompleted) break;
+
+                    reader.AdvanceTo(buffer.End);
+                }
+            }
+            finally
+            {
+                await writer.FlushAsync();
+                await reader.CompleteAsync();
+                await writer.CompleteAsync();
+            }
+
+            return memStream;
+        }
+
         private async Task<Profile> ReadDataFromRequestAndWriteToFileAsync(HttpContext context, string filename,
             string? name = default)
         {
@@ -160,19 +217,6 @@ namespace api
             }
 
             return profileResults;
-        }
-
-        public async Task GetAttributes(HttpContext ctx, Guid faceId = default)
-        {
-            // TODO: check with azure which kind of attributes it have
-
-            // check which system the faceId belongs to
-            // var (systemId) = _storageProvider.GetFaceAsync(faceId);
-
-            // get that feature from the data
-
-
-            throw new NotImplementedException();
         }
 
         public async Task GetFaces(HttpContext context, Guid faceId = default)

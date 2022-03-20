@@ -8,6 +8,10 @@ public class DlibFace : IFacePlugin
     private readonly FaceRecognition _service;
 
     public string Identifier => "Dlibdotnet";
+    public Task<Face> GetAttributesAsync(Stream stream)
+    {
+        throw new NotImplementedException();
+    }
 
     public DlibFace()
     {

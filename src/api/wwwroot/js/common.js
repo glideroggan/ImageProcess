@@ -1,8 +1,8 @@
 ﻿document.addEventListener("DOMContentLoaded", start);
 
-function sendRequestVerifyImage(blob, successCallback, errorCallback) {
+function sendRequestVerifyImage(endpoint, blob, successCallback, errorCallback) {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/api/faces/verify', true);
+    xhr.open('POST', endpoint, true);
     xhr.setRequestHeader('content-type', 'image/jpg');
     xhr.onload = function () {
         if (this.status === 200) {
@@ -14,8 +14,8 @@ function sendRequestVerifyImage(blob, successCallback, errorCallback) {
     xhr.send(blob);
 }
 
-function sendDataCallback(blob, success, error) {
-    sendRequestVerifyImage(blob, response => {
+function sendDataCallback(endpoint, blob, success, error) {
+    sendRequestVerifyImage(endpoint, blob, response => {
         let json = JSON.parse(response);
         if (json.error !== null) {
             error(json.error);

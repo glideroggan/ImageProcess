@@ -61,10 +61,15 @@ app.MapGet("/api/faces", async (ctx) => await imageProcess.GetFaces(ctx));
 app.MapPost("/api/faces/{name}", async (string name, HttpContext ctx) => await imageProcess.AddNewFace(ctx, name));
 app.MapGet("/api/faces/{faceId}", async (HttpContext ctx, Guid faceId) => await imageProcess.GetFaces(ctx, faceId));
 app.MapPost("/api/faces/verify", async (HttpContext ctx, bool? async) => await imageProcess.VerifyFace(ctx));
+app.MapPost("/api/faces/attributes", async (HttpContext ctx, Guid? faceId) => 
+    await imageProcess.GetAttributes(ctx, AttributeEnum.All));
 
 // TODO: needs to be implemented
-app.MapGet("/api/faces/{faceId}/attributes", async (Guid faceId, HttpContext ctx) =>
-    await imageProcess.GetAttributes(ctx, faceId));
-app.MapPost("/api/faces/attributes", async ctx => await imageProcess.GetAttributes(ctx));
+// app.MapPost("/api/faces/attributes", async (HttpContext ctx) =>
+//     await imageProcess.GetAttributes(ctx));
+// app.MapGet("/api/faces/{faceId}/attributes", async (Guid faceId, HttpContext ctx) =>
+//     await imageProcess.GetAttributes(ctx, AttributeEnum.All, faceId));
+
+
 
 app.Run();
